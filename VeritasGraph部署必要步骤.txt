@@ -1,0 +1,156 @@
+VeritasGraph 部署必要步骤（基于当前仓库实际内容整理）
+
+项目路径：graphrag/VeritasGraph
+
+一、先说明当前仓库缺失的关键文件
+1. 当前目录里没有 requirements.txt
+2. 当前目录里没有 settings.yaml
+3. 当前目录里没有 .env.example
+4. 当前目录里没有 reasoning_search.py
+5. README 里提到的 docker 目录也不在当前副本中
+
+因此，部署时建议按“先装 Python 依赖 + 再初始化 GraphRAG 配置 + 再启动 UI”的方式进行。
+
+二、基础环境
+1. Python 建议 3.10 或 3.11
+2. pip
+3. 如果走本地模型：需要安装 Ollama
+4. 如果走云模型：准备 OpenAI / Groq / OpenRouter 等兼容 API Key
+
+三、创建虚拟环境
+在项目根目录执行：
+
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+
+四、安装项目依赖
+先安装打包好的 VeritasGraph：
+
+pip install ./dist/veritasgraph-0.3.0.tar.gz
+
+再安装当前 graphrag-ollama-config 目录实际运行所需依赖：
+
+pip install gradio pandas tiktoken python-dotenv networkx pyvis lancedb pyarrow graphrag youtube-transcript-api trafilatura yt-dlp sympy future
+
+说明：
+- app.py 依赖 gradio / pandas / tiktoken / graphrag / lancedb / pyvis
+- graph_visualizer.py 依赖 networkx / pyvis / pandas / pyarrow
+- ingest.py 依赖 youtube-transcript-api / trafilatura / yt-dlp
+
+五、模型准备（二选一）
+方案 A：本地 Ollama（推荐私有化部署）
+1. 安装 Ollama
+2. 启动服务：
+   ollama serve
+3. 拉取模型：
+   ollama pull qwen3:latest
+   ollama pull nomic-embed-text:latest
+
+方案 B：云端 OpenAI 兼容接口
+1. 准备 API Key
+2. 不需要安装和启动 Ollama
+
+六、配置环境变量
+编辑文件：
+
+graphrag/VeritasGraph/graphrag-ollama-config/.env
+
+如果使用本地 Ollama，可保留或改成类似：
+
+GRAPHRAG_API_KEY=ollama
+GRAPHRAG_LLM_MODEL=qwen3:latest
+GRAPHRAG_LLM_API_BASE=http://localhost:11434/v1
+GRAPHRAG_EMBEDDING_MODEL=nomic-embed-text:latest
+GRAPHRAG_EMBEDDING_API_BASE=http://localhost:11434/v1
+GRAPHRAG_EMBEDDING_API_KEY=ollama
+
+如果使用 OpenAI 兼容接口，改成类似：
+
+GRAPHRAG_API_KEY=你的Key
+GRAPHRAG_LLM_MODEL=gpt-4o-mini
+GRAPHRAG_LLM_API_BASE=https://api.openai.com/v1
+GRAPHRAG_EMBEDDING_MODEL=text-embedding-3-small
+GRAPHRAG_EMBEDDING_API_BASE=https://api.openai.com/v1
+GRAPHRAG_EMBEDDING_API_KEY=你的Key
+
+七、初始化 GraphRAG 工作目录
+进入配置目录：
+
+cd graphrag/VeritasGraph/graphrag-ollama-config
+
+如果还没有 GraphRAG 配置文件，先初始化：
+
+python -m graphrag.index --init --root .
+
+执行后重点检查并补齐：
+1. settings.yaml 是否已生成
+2. input/ 目录是否存在
+3. output/ 目录是否存在
+
+八、准备数据
+把待索引的文本/资料放入：
+
+graphrag-ollama-config/input/
+
+说明：
+- 当前仓库的 input/ 里已经有一些示例 txt 文件
+- 如果你要部署自己的知识库，替换成你自己的文本/PDF预处理结果
+
+九、执行索引
+在 graphrag-ollama-config 目录执行：
+
+python -m graphrag.index --root .
+
+索引完成后，确认 output/artifacts 或 output/时间戳目录/artifacts 已生成。
+因为 app.py 查询时就是读取这些 artifacts。
+
+十、启动 Web UI
+仍在 graphrag-ollama-config 目录执行：
+
+python app.py --host 0.0.0.0 --port 7860
+
+如果只想临时外网分享：
+
+python app.py --host 0.0.0.0 --port 7860 --share
+
+十一、访问方式
+本机访问：
+http://127.0.0.1:7860
+
+局域网访问：
+http://你的服务器IP:7860
+
+十二、部署检查清单
+1. .venv 已激活
+2. 依赖已安装完成
+3. .env 已按模型来源配置好
+4. Ollama 已启动（如果走本地模型）
+5. graphrag.index 已成功跑完
+6. output/artifacts 已生成
+7. app.py 已正常启动
+8. 7860 端口已放行
+
+十三、最小可执行命令顺序
+cd graphrag/VeritasGraph
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install ./dist/veritasgraph-0.3.0.tar.gz
+pip install gradio pandas tiktoken python-dotenv networkx pyvis lancedb pyarrow graphrag youtube-transcript-api trafilatura yt-dlp sympy future
+cd graphrag-ollama-config
+python -m graphrag.index --init --root .
+python -m graphrag.index --root .
+python app.py --host 0.0.0.0 --port 7860
+
+十四、补充建议
+1. 如果部署到服务器，建议用 systemd / supervisor 守护 app.py
+2. 如果要长期对外提供服务，建议加 Nginx 反向代理
+3. 如果只做体验演示，--share 最快
+4. 如果索引失败，优先检查 .env、settings.yaml、模型连通性、output 日志
+
+
+
+
+ cd graphrag/VeritasGraph/graphrag-ollama-config
+  ../.venv/bin/python app.py --port 7860

@@ -315,6 +315,116 @@ def create_graph_html_for_query(
         return f"<div style='padding: 20px; color: #ff6b6b;'>Error creating graph: {str(e)}</div>"
 
 
+def create_explanation_graph_html(
+    explanation: Dict[str, Any],
+    height: str = "600px",
+    width: str = "100%",
+    bgcolor: str = "#0a0a0a",
+    font_color: str = "white",
+) -> str:
+    """Render an explanation payload as a highlighted PyVis graph."""
+    try:
+        subgraph = explanation.get("subgraph", {})
+        nodes = subgraph.get("nodes", [])
+        edges = subgraph.get("edges", [])
+        if not nodes:
+            return "<div style='padding: 20px; color: white;'>暂无可展示的子图。</div>"
+
+        net = Network(
+            height=height,
+            width=width,
+            bgcolor=bgcolor,
+            font_color=font_color,
+            directed=False,
+            notebook=False,
+            cdn_resources='remote'
+        )
+        net.set_options("""
+        {
+            "nodes": {
+                "shape": "dot",
+                "font": {"size": 14, "face": "Arial"}
+            },
+            "edges": {
+                "smooth": {"type": "continuous"},
+                "selectionWidth": 2
+            },
+            "physics": {
+                "enabled": true,
+                "barnesHut": {
+                    "gravitationalConstant": -25000,
+                    "springLength": 140,
+                    "springConstant": 0.03,
+                    "damping": 0.11
+                },
+                "stabilization": {"enabled": true, "iterations": 200}
+            },
+            "interaction": {
+                "hover": true,
+                "dragView": true,
+                "zoomView": true
+            }
+        }
+        """)
+
+        for node in nodes:
+            label = node.get("label", node.get("title", ""))
+            if node.get("is_query_entity"):
+                color = "#ef4444"
+            elif node.get("is_answer_entity"):
+                color = "#22c55e"
+            elif node.get("is_path_node"):
+                color = "#f59e0b"
+            else:
+                color = get_node_color(node.get("type", "default"), False)
+
+            size = min(14 + int(node.get("degree", 0)) * 2, 42)
+            tooltip = f"<b>{label}</b><br>{node.get('description', '')}"
+            net.add_node(
+                label,
+                label=label[:28] + "..." if len(label) > 28 else label,
+                title=tooltip,
+                color=color,
+                size=size,
+                borderWidth=4 if node.get("is_path_node") or node.get("is_query_entity") else 2,
+            )
+
+        for edge in edges:
+            color = "#64748b"
+            width = min(1.5 + float(edge.get("weight", 0) or 0) * 0.5, 6)
+            if edge.get("is_path_edge"):
+                color = "#f59e0b"
+                width = max(width, 4)
+            elif edge.get("is_evidence_edge"):
+                color = "#38bdf8"
+                width = max(width, 3)
+            title = edge.get("description", "") or f"{edge.get('source')} → {edge.get('target')}"
+            net.add_edge(
+                edge.get("source"),
+                edge.get("target"),
+                title=title,
+                color={"color": color, "opacity": 0.9},
+                width=width,
+            )
+
+        html_content = net.generate_html()
+        html_bytes = html_content.encode('utf-8')
+        html_base64 = base64.b64encode(html_bytes).decode('utf-8')
+        return f'''
+        <iframe
+            src="data:text/html;base64,{html_base64}"
+            width="100%"
+            height="550px"
+            style="border: 1px solid #334155; border-radius: 8px; background: #020617;"
+        ></iframe>
+        <p style="color: #94a3b8; font-size: 12px; margin-top: 8px; text-align: center;">
+            🔴 问题实体 · 🟢 回答实体 · 🟠 关键路径 · 🔵 证据边
+        </p>
+        '''
+    except Exception as e:
+        return f"<div style='padding: 20px; color: #ff6b6b;'>Error creating explanation graph: {str(e)}</div>"
+
+
 def get_graph_stats(input_dir: str) -> Dict[str, Any]:
     """Get statistics about the knowledge graph."""
     

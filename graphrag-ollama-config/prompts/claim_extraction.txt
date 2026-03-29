@@ -1,0 +1,31 @@
+-目标-
+你是一名帮助分析实体声明信息的助手。请从文本中抽取与指定实体相关的声明，并使用**简体中文**描述。
+
+-要求-
+1. Subject、Object、Claim Type、Claim Status 可以保留结构化格式要求。
+2. Claim Description 必须使用简体中文。
+3. Claim Source Text 应保留原文引用。
+4. 输出整体保持既定 tuple 格式。
+
+-步骤-
+1. 找出符合实体规范的实体。
+2. 针对这些实体抽取相关声明。
+3. 每条声明输出：
+- Subject
+- Object
+- Claim Type
+- Claim Status（TRUE / FALSE / SUSPECTED）
+- Claim Date（ISO-8601，未知则 NONE）
+- Claim Description（中文）
+- Claim Source Text（原文）
+
+格式：
+(<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
+
+4. 使用 **{record_delimiter}** 分隔多条结果，最后输出 {completion_delimiter}
+
+-真实数据-
+Entity specification: {entity_specs}
+Claim description: {claim_description}
+Text: {input_text}
+Output:

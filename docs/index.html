@@ -13,12 +13,25 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
-       .stage-card {
+        .hero-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #eef4ff 100%);
+            border: 1px solid #dbe7ff;
+            border-radius: 1rem;
+            box-shadow: 0 18px 40px -28px rgb(15 23 42 / 0.45);
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 0.875rem;
+            padding: 1.25rem;
+        }
+        .stage-card {
             background-color: white;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             border-left: 4px solid;
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            height: 100%;
         }
        .stage-card:hover {
             transform: translateY(-5px);
@@ -111,24 +124,46 @@
             </button>
         </header>
 
-        <main class="md:ml-64 flex-1 p-8 pt-20 md:pt-8">
+        <main class="md:ml-64 flex-1 px-4 pt-20 pb-8 md:pt-6 md:pb-10 md:pl-5 md:pr-7">
             
-            <section id="introduction" class="mb-16">
-                <h1 class="text-4xl font-bold text-slate-900 mb-4">Introduction to VeritasGraph</h1>
-                <p class="text-lg text-gray-600 mb-6">
-                    VeritasGraph is a production-ready, end-to-end framework for building advanced question-answering and summarization systems that operate entirely within your private infrastructure. It is architected to overcome the fundamental limitations of traditional vector-search-based Retrieval-Augmented Generation (RAG) by leveraging a knowledge graph to perform complex, multi-hop reasoning.
-                </p>
-                <p class="text-lg text-gray-600">
-                    Baseline RAG systems excel at finding direct answers but falter when faced with questions that require connecting disparate information. VeritasGraph addresses this challenge directly, providing not just answers, but transparent, auditable reasoning paths with full source attribution for every generated claim, establishing a new standard for trust and reliability in enterprise AI.
-                </p>
+            <section id="introduction" class="mb-12">
+                <div class="hero-panel p-6 md:p-8">
+                    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,1.05fr)]">
+                        <div>
+                            <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Introduction to VeritasGraph</h1>
+                            <p class="text-lg text-gray-600 mb-6">
+                                VeritasGraph is a production-ready, end-to-end framework for building advanced question-answering and summarization systems that operate entirely within your private infrastructure. It is architected to overcome the fundamental limitations of traditional vector-search-based Retrieval-Augmented Generation (RAG) by leveraging a knowledge graph to perform complex, multi-hop reasoning.
+                            </p>
+                            <p class="text-lg text-gray-600">
+                                Baseline RAG systems excel at finding direct answers but falter when faced with questions that require connecting disparate information. VeritasGraph addresses this challenge directly, providing not just answers, but transparent, auditable reasoning paths with full source attribution for every generated claim, establishing a new standard for trust and reliability in enterprise AI.
+                            </p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                            <div class="stat-card">
+                                <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 mb-2">Core Stack</div>
+                                <div class="text-2xl font-bold text-slate-900 mb-2">Graph + Hybrid Retrieval + LoRA</div>
+                                <p class="text-gray-600">A tighter pipeline for multi-hop answers, provenance, and controllable deployment.</p>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 mb-2">Why It Feels Different</div>
+                                <div class="grid grid-cols-2 gap-3 text-sm text-slate-700">
+                                    <div class="rounded-xl bg-slate-100 p-3"><strong class="block text-slate-900">Private</strong> Runs inside your infra</div>
+                                    <div class="rounded-xl bg-slate-100 p-3"><strong class="block text-slate-900">Traceable</strong> Source-backed outputs</div>
+                                    <div class="rounded-xl bg-slate-100 p-3"><strong class="block text-slate-900">Modular</strong> Swap retrieval and models</div>
+                                    <div class="rounded-xl bg-slate-100 p-3"><strong class="block text-slate-900">Scalable</strong> Structured reasoning assets</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <section id="architecture" class="mb-16">
+            <section id="architecture" class="mb-12">
                 <h1 class="text-4xl font-bold text-slate-900 mb-8">The Architectural Blueprint</h1>
-                <p class="text-lg text-gray-600 mb-12">
+                <p class="text-lg text-gray-600 mb-8 max-w-5xl">
                     The VeritasGraph pipeline is a four-stage process that systematically transforms a corpus of raw, unstructured documents into a structured knowledge asset capable of sophisticated, attributable reasoning.
                 </p>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div class="stage-card border-l-[#ffa600] p-6">
                         <h2 class="text-2xl font-bold text-[#ffa600] mb-4">Stage 1: Knowledge Graph Construction</h2>
                         <p class="mb-6 text-gray-600">This initial stage transforms raw, unstructured documents into a structured, interconnected knowledge graph. The goal is to create a rich data foundation that enables complex reasoning, moving beyond simple keyword or vector search.</p>
@@ -178,16 +213,36 @@
                 </div>
             </section>
 
-            <section id="getting-started" class="mb-16">
+            <section id="getting-started" class="mb-12">
                 <h1 class="text-4xl font-bold text-slate-900 mb-8">Getting Started</h1>
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-4">Environment Setup</h2>
-                    <p class="mb-4">This guide uses Ollama with `llama3.1` for generation and `nomic-text-embed` for embeddings. It is recommended to run on Windows without WSL if using LM Studio for embeddings to avoid connection issues.</p>
-                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-                        <p class="font-bold">Important: Fix Model Context Length</p>
-                        <p>Ollama's default context length is 2048, which can truncate I/O during indexing. This guide uses a 12k context window. Note that changing the model in `settings.yaml` will restart the entire indexing process.</p>
+                <div class="grid gap-5 xl:grid-cols-[minmax(360px,0.92fr)_minmax(0,1.38fr)]">
+                    <div class="bg-white p-8 rounded-lg shadow-md h-fit">
+                        <h2 class="text-2xl font-bold mb-4">Environment Setup</h2>
+                        <p class="mb-4">This guide uses Ollama with `llama3.1` for generation and `nomic-text-embed` for embeddings. It is recommended to run on Windows without WSL if using LM Studio for embeddings to avoid connection issues.</p>
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+                            <p class="font-bold">Important: Fix Model Context Length</p>
+                            <p>Ollama's default context length is 2048, which can truncate I/O during indexing. This guide uses a 12k context window. Note that changing the model in `settings.yaml` will restart the entire indexing process.</p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
+                            <div class="rounded-xl bg-slate-100 p-4">
+                                <div class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 mb-2">Inference</div>
+                                <p class="text-slate-700">`llama3.1` for generation with a custom 12k context window.</p>
+                            </div>
+                            <div class="rounded-xl bg-slate-100 p-4">
+                                <div class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 mb-2">Embeddings</div>
+                                <p class="text-slate-700">`nomic-text-embed` for graph-aware semantic retrieval.</p>
+                            </div>
+                            <div class="rounded-xl bg-slate-100 p-4 sm:col-span-2 2xl:col-span-1">
+                                <div class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 mb-2">Recommended Flow</div>
+                                <p class="text-slate-700">Prepare models, initialize GraphRAG, index documents, then launch the Gradio UI.</p>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">1. Pull Required Models</h3>
+                    <div class="bg-white p-8 rounded-lg shadow-md">
+                        <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.18fr)]">
+                            <div>
+                                <h2 class="text-2xl font-bold mt-0 mb-4">Model Preparation</h2>
+                                <h3 class="text-xl font-semibold mb-2">1. Pull Required Models</h3>
 <pre class="line-numbers"><code class="language-bash">
 # Terminal 1
 ollama serve
@@ -196,17 +251,19 @@ ollama serve
 ollama pull llama3.1
 ollama pull nomic-embed-text
 </code></pre>
-                    <h3 class="text-xl font-semibold mt-6 mb-2">2. Build Model with Custom Context Length</h3>
+                                <h3 class="text-xl font-semibold mt-6 mb-2">2. Build Model with Custom Context Length</h3>
 <pre class="line-numbers"><code class="language-bash">
 ollama create llama3.1-12k -f./Modelfile
 </code></pre>
-                    <h2 class="text-2xl font-bold mt-8 mb-4">GraphRAG Indexing Steps</h2>
-                    <h3 class="text-xl font-semibold mb-2">1. Activate Conda Environment</h3>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold mt-0 mb-4">GraphRAG Indexing</h2>
+                                <h3 class="text-xl font-semibold mb-2">1. Activate Conda Environment</h3>
 <pre class="line-numbers"><code class="language-bash">
 conda create -n rag python=&lt;3.12
 conda activate rag
 </code></pre>
-                    <h3 class="text-xl font-semibold mt-6 mb-2">2. Install GraphRAG</h3>
+                                <h3 class="text-xl font-semibold mt-6 mb-2">2. Install GraphRAG</h3>
 <pre class="line-numbers"><code class="language-bash">
 # Clone the project and navigate to the config directory
 cd graphrag-ollama-config
@@ -215,7 +272,7 @@ cd graphrag-ollama-config
 cd graphrag-ollama
 pip install -e./
 </code></pre>
-                    <h3 class="text-xl font-semibold mt-6 mb-2">3. Initialize and Configure</h3>
+                                <h3 class="text-xl font-semibold mt-6 mb-2">3. Initialize and Configure</h3>
 <pre class="line-numbers"><code class="language-bash">
 # Install dependencies
 pip install sympy future ollama
@@ -226,27 +283,38 @@ python -m graphrag.index --init --root.
 # Create your.env file
 cp.env.example.env
 </code></pre>
-                    <p class="mt-4">Move your input text files to the `./input/` directory and double-check parameters in `.env` and `settings.yaml`.</p>
-                    <h3 class="text-xl font-semibold mt-6 mb-2">4. Start Indexing</h3>
+                                <p class="mt-4">Move your input text files to the `./input/` directory and double-check parameters in `.env` and `settings.yaml`.</p>
+                                <h3 class="text-xl font-semibold mt-6 mb-2">4. Start Indexing</h3>
 <pre class="line-numbers"><code class="language-bash">
 python -m graphrag.index --root.
 </code></pre>
-                    <h2 class="text-2xl font-bold mt-8 mb-4">Using the UI</h2>
-                    <h3 class="text-xl font-semibold mb-2">1. Install Requirements</h3>
+                            </div>
+                        </div>
+                        <div class="mt-8 rounded-2xl bg-slate-50 p-6 border border-slate-200">
+                            <h2 class="text-2xl font-bold mb-4">Using the UI</h2>
+                            <div class="grid gap-4 xl:grid-cols-[minmax(280px,0.78fr)_minmax(0,1.32fr)]">
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">1. Install Requirements</h3>
 <pre class="line-numbers"><code class="language-bash">
 pip install -r requirements.txt
 </code></pre>
-                    <h3 class="text-xl font-semibold mt-6 mb-2">2. Run the Application</h3>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">2. Run the Application</h3>
 <pre class="line-numbers"><code class="language-bash">
 gradio app.py
 </code></pre>
-                    <p class="mt-4">Access the UI by visiting <a href="http://127.0.0.1:7860/" class="text-blue-600 hover:underline">http://127.0.0.1:7860/</a> in your browser.</p>
+                                    <p class="mt-4">Access the UI by visiting <a href="http://127.0.0.1:7860/" class="text-blue-600 hover:underline">http://127.0.0.1:7860/</a> in your browser.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="code-reference" class="mb-16">
+            <section id="code-reference" class="mb-12">
                 <h1 class="text-4xl font-bold text-slate-900 mb-8">Code Reference</h1>
-                <div class="space-y-8">
+                <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                     <div>
                         <h2 class="text-2xl font-bold mb-4">Gradio UI: `app.py`</h2>
                         <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -485,21 +553,25 @@ training_args = TrainingArguments(
                 </div>
             </section>
 
-            <section id="philosophy" class="mb-16">
+            <section id="philosophy" class="mb-12">
                 <h1 class="text-4xl font-bold text-slate-900 mb-8">Project Philosophy & Roadmap</h1>
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-4">Philosophy</h2>
-                    <p class="text-gray-600 mb-6">
-                        VeritasGraph is founded on the principle that the most powerful AI systems should also be the most transparent, secure, and controllable. The project's philosophy is a commitment to democratizing enterprise-grade AI, providing organizations with the tools to build their own sovereign knowledge assets. This stands in contrast to a reliance on opaque, proprietary, cloud-based APIs, empowering organizations to maintain full control over their data and the reasoning processes applied to it.
-                    </p>
-                    <h2 class="text-2xl font-bold mb-4">Roadmap</h2>
-                    <p class="text-gray-600 mb-4">The project is under active development. Future enhancements are planned to expand its capabilities and ecosystem integration:</p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li>**Expanded Database Support:** Integration with a wider range of graph databases and vector stores.</li>
-                        <li>**Advanced Graph Analytics:** Incorporation of community detection and summarization techniques.</li>
-                        <li>**Agentic Framework:** Development of an agentic layer that can perform more complex, multi-step reasoning tasks.</li>
-                        <li>**Visualization UI:** A web-based user interface for visualizing the knowledge graph and exploring attribution paths.</li>
-                    </ul>
+                <div class="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.1fr)]">
+                    <div class="bg-white p-8 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">Philosophy</h2>
+                        <p class="text-gray-600 mb-6">
+                            VeritasGraph is founded on the principle that the most powerful AI systems should also be the most transparent, secure, and controllable. The project's philosophy is a commitment to democratizing enterprise-grade AI, providing organizations with the tools to build their own sovereign knowledge assets. This stands in contrast to a reliance on opaque, proprietary, cloud-based APIs, empowering organizations to maintain full control over their data and the reasoning processes applied to it.
+                        </p>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">Roadmap</h2>
+                        <p class="text-gray-600 mb-4">The project is under active development. Future enhancements are planned to expand its capabilities and ecosystem integration:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2">
+                            <li>**Expanded Database Support:** Integration with a wider range of graph databases and vector stores.</li>
+                            <li>**Advanced Graph Analytics:** Incorporation of community detection and summarization techniques.</li>
+                            <li>**Agentic Framework:** Development of an agentic layer that can perform more complex, multi-step reasoning tasks.</li>
+                            <li>**Visualization UI:** A web-based user interface for visualizing the knowledge graph and exploring attribution paths.</li>
+                        </ul>
+                    </div>
                 </div>
             </section>
 

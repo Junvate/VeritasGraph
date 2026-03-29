@@ -11,6 +11,15 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from typing import Tuple, Optional
 import json
+import shutil
+
+from pdf_source_map import (
+    extract_pdf_source_map,
+    save_source_map,
+    shift_source_map_offsets,
+    delete_source_map,
+    source_map_available,
+)
 
 # YouTube transcript extraction
 try:
@@ -323,6 +332,16 @@ def save_content(filename: str, content: str) -> str:
     return filepath
 
 
+def save_uploaded_pdf(pdf_path: str, filename: str) -> str:
+    """Persist uploaded PDF into input directory for future re-index/debug use."""
+    ensure_input_dir()
+    pdf_dir = os.path.join(INPUT_DIR, "pdfs")
+    os.makedirs(pdf_dir, exist_ok=True)
+    target_path = os.path.join(pdf_dir, filename)
+    shutil.copyfile(pdf_path, target_path)
+    return target_path
+
+
 def ingest_url(url: str, auto_index: bool = False) -> Tuple[bool, str, Optional[str]]:
     """
     Main function to ingest content from a URL.
@@ -485,6 +504,80 @@ def ingest_text_content(title: str, content: str, auto_index: bool = False) -> T
         message += f"\n\n{index_msg}"
     
     return True, message, filepath
+
+
+def ingest_pdf_file(pdf_path: str, auto_index: bool = False) -> Tuple[bool, str, Optional[str]]:
+    """
+    Ingest a PDF file by extracting text plus a page/bbox source map sidecar.
+
+    The extracted text is saved as .txt for GraphRAG indexing.
+    The source map is saved separately and later consumed by the explanation engine.
+    """
+    if not pdf_path or not os.path.exists(pdf_path):
+        return False, "⚠️ 请先上传 PDF 文件。", None
+
+    if not source_map_available():
+        return False, "⚠️ 当前环境缺少 `pdfplumber`，暂时无法提取 PDF 页码与版面坐标。", None
+
+    success, message, source_map = extract_pdf_source_map(pdf_path)
+    if not success or not source_map:
+        return False, f"❌ PDF Error: {message}", None
+
+    basename = os.path.basename(pdf_path)
+    title_without_ext = os.path.splitext(basename)[0]
+    safe_title = re.sub(r"[^\w\s-]", "", title_without_ext)
+    safe_title = re.sub(r"[-\s]+", "_", safe_title)[:50] or "document"
+    filename = f"pdf_{safe_title}_{hashlib.md5(os.path.abspath(pdf_path).encode()).hexdigest()[:8]}.txt"
+
+    metadata = {
+        "title": title_without_ext,
+        "source": "pdf_file",
+        "original_pdf": basename,
+        "page_count": len({seg.get('page') for seg in source_map.get('segments', []) if seg.get('page') is not None}),
+        "word_count": len(str(source_map.get("text", "")).split()),
+        "character_count": len(str(source_map.get("text", ""))),
+    }
+
+    header_lines = [
+        "# Source: PDF FILE",
+        f"# Title: {title_without_ext}",
+        f"# Original PDF: {basename}",
+        f"# Ingested: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"# Page Count: {metadata['page_count']}",
+        f"# Word Count: {metadata['word_count']}",
+        f"# Character Count: {metadata['character_count']}",
+        "",
+        "---",
+        "",
+    ]
+    header = "\n".join(header_lines)
+    content_body = str(source_map.get("text", "") or "")
+    formatted_content = header + content_body
+
+    filepath = save_content(filename, formatted_content)
+    save_uploaded_pdf(pdf_path, os.path.basename(pdf_path))
+
+    shifted_map = shift_source_map_offsets(source_map, len(header))
+    save_source_map(filename, shifted_map)
+
+    message_parts = [
+        "✅ **PDF 已成功入库！**",
+        "",
+        f"📄 **标题：** {title_without_ext}",
+        f"📚 **页数：** {metadata['page_count']}",
+        f"📊 **词数：** {metadata['word_count']:,}",
+        f"🧭 **定位能力：** 页码 + 段落 + bbox sidecar",
+        f"💾 **索引文本：** `{filename}`",
+        "",
+        "🔄 **下一步：** 点击“全量建索引”或“增量更新”后即可在问答解释里看到 PDF 溯源定位。",
+    ]
+
+    if auto_index:
+        index_success, index_msg = trigger_graphrag_index()
+        message_parts.append("")
+        message_parts.append(index_msg)
+
+    return True, "\n".join(message_parts), filepath
 
 
 def trigger_graphrag_index_async() -> Tuple[bool, str]:
@@ -873,6 +966,7 @@ def delete_input_file(filename: str) -> Tuple[bool, str]:
     filepath = os.path.join(INPUT_DIR, filename)
     if os.path.exists(filepath):
         os.remove(filepath)
+        delete_source_map(filename)
         return True, f"✅ Deleted: {filename}"
     return False, f"❌ File not found: {filename}"
 
@@ -894,5 +988,6 @@ def check_dependencies() -> dict:
     """Check which optional dependencies are available."""
     return {
         "youtube": YOUTUBE_AVAILABLE,
-        "web": TRAFILATURA_AVAILABLE
+        "web": TRAFILATURA_AVAILABLE,
+        "pdf": source_map_available(),
     }

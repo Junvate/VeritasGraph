@@ -1,0 +1,39 @@
+-目标-
+给定一段文本和实体类型列表，从文本中识别相关实体以及实体之间明确存在的关系。
+
+-重要要求-
+1. **所有描述性内容必须使用简体中文输出**。
+2. `entity_name`、`source_entity`、`target_entity` 应尽量保持原文中的实体名称写法。
+3. `entity_type` 必须严格使用给定实体类型列表中的值，不要自行改写。
+4. `entity_description` 与 `relationship_description` 必须是自然、准确、简洁的中文。
+
+-步骤-
+1. 识别文本中的所有实体。对每个实体提取以下信息：
+- entity_name：实体名称
+- entity_type：必须是以下类型之一：[{entity_types}]
+- entity_description：该实体的属性、作用、背景或活动的中文说明
+
+每个实体格式如下：
+("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
+
+2. 基于第 1 步识别出的实体，找出彼此之间**明确相关**的实体对。
+对每组相关实体提取以下信息：
+- source_entity：关系起点实体名称
+- target_entity：关系终点实体名称
+- relationship_description：说明两者为何相关的中文说明
+- relationship_strength：关系强度，使用数字表示
+
+每条关系格式如下：
+("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+
+3. 将所有实体和关系作为单个列表输出，使用 **{record_delimiter}** 作为分隔符。
+
+4. 输出完成后，最后加上 {completion_delimiter}
+
+######################
+-真实数据-
+######################
+Entity_types: {entity_types}
+Text: {input_text}
+######################
+Output:
