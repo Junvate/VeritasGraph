@@ -2,6 +2,9 @@ import gradio as gr
 import os
 import asyncio
 import time
+from urllib.parse import urlparse
+
+import httpx
 import pandas as pd
 import tiktoken
 from dotenv import load_dotenv
@@ -79,6 +82,7 @@ except ImportError:
 script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(script_dir, '.env'))
 join = os.path.join
+LAUNCH_THEME = gr.themes.Base()
 
 PRESET_MAPPING = {
     "默认": {
@@ -813,7 +817,7 @@ def create_gradio_interface():
         }
     }
     """
-    with gr.Blocks(css=custom_css, theme=gr.themes.Base(), title="VeritasGraph 中文演示") as demo:
+    with gr.Blocks(title="VeritasGraph 中文演示") as demo:
         gr.Markdown("""
         # 🔍 VeritasGraph 中文版演示
         **企业级知识图谱 RAG，支持可验证溯源**
@@ -1244,7 +1248,54 @@ def create_gradio_interface():
             outputs=[graph_display]
         )
 
+    demo.veritas_launch_css = custom_css
     return demo.queue()
+
+
+def _extend_no_proxy(host: str) -> None:
+    no_proxy_hosts = {"127.0.0.1", "localhost", "::1"}
+    if host:
+        no_proxy_hosts.add(host)
+
+    for env_name in ("NO_PROXY", "no_proxy"):
+        existing = os.environ.get(env_name, "")
+        merged = {item.strip() for item in existing.split(",") if item.strip()}
+        merged.update(no_proxy_hosts)
+        os.environ[env_name] = ",".join(sorted(merged))
+
+
+def _is_local_startup_probe(url: str) -> bool:
+    parsed = urlparse(str(url))
+    return (
+        parsed.path.endswith("/startup-events")
+        and parsed.hostname in {"127.0.0.1", "localhost", "0.0.0.0", "::1"}
+    )
+
+
+def launch_gradio_app(demo: gr.Blocks, host: str, port: int, share: bool) -> tuple:
+    _extend_no_proxy(host)
+
+    original_httpx_get = httpx.get
+
+    def patched_httpx_get(url, *args, **kwargs):
+        if _is_local_startup_probe(url):
+            verify = kwargs.pop("verify", True)
+            with httpx.Client(trust_env=False, verify=verify) as client:
+                return client.get(url, *args, **kwargs)
+        return original_httpx_get(url, *args, **kwargs)
+
+    httpx.get = patched_httpx_get
+    try:
+        return demo.launch(
+            server_port=port,
+            server_name=host,
+            share=share,
+            allowed_paths=[GRAPH_CACHE_DIR],
+            theme=LAUNCH_THEME,
+            css=getattr(demo, "veritas_launch_css", None),
+        )
+    finally:
+        httpx.get = original_httpx_get
 
 
 demo = create_gradio_interface()
@@ -1270,9 +1321,9 @@ if __name__ == "__main__":
     print(f"🌐 本地地址：http://{args.host}:{args.port}")
     print("="*60 + "\n")
     
-    demo.launch(
-        server_port=args.port, 
-        server_name=args.host,
+    launch_gradio_app(
+        demo=demo,
+        host=args.host,
+        port=args.port,
         share=args.share,
-        allowed_paths=[GRAPH_CACHE_DIR]
     )
